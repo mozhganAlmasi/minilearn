@@ -1,0 +1,50 @@
+[
+  {
+    "id": "count-to-5",
+    "title": "Count to five",
+    "ageMin": 3,
+    "ageMax": 5,
+    "icon": "🔢",
+    "questions": [
+
+      { "question": "How many apples?  🍎 🍎 ",
+        "choices": ["2","3","4"],
+        "answerIndex": 0 },
+      { "question": "What comes after 4?", "choices": ["3","5","6"], "answerIndex":
+      1 },
+      { "question": "Count the stars:  ⭐ ⭐ ",
+        "choices": ["1","2","3"],
+        "answerIndex": 1 }
+    ]
+  },
+  {
+    "id": "colors-basic",
+    "title": "Basic Colors",
+    "ageMin": 3,
+    "ageMax": 6,
+    "icon": "🎨",
+    "questions": [
+      { "question": "Bananas are…", "choices": ["Blue","Yellow","Red"],
+        "answerIndex": 1 },
+      { "question": "Grass is…", "choices": ["Green","Purple","Orange"],
+        "answerIndex": 0 },
+      { "question": "Tomatoes are…", "choices": ["Black","Brown","Red"],
+        "answerIndex": 2 }
+    ]
+  },
+  {
+    "id": "animals-sounds",
+    "title": "Animal Sounds",
+    "ageMin": 3,
+    "ageMax": 6,
+    "icon": " 🦁",
+    "questions": [
+      { "question": "A cow says…", "choices": ["Moo","Baa","Neigh"], "answerIndex":
+      0 },
+      { "question": "A sheep says…", "choices": ["Oink","Baa","Roar"],
+        "answerIndex": 1 },
+      { "question": "A horse says…", "choices": ["Tweet","Neigh","Hiss"],
+        "answerIndex": 1 }
+    ]
+  }
+]
