@@ -12,11 +12,11 @@ final class StorageInitial extends StorageState {}
 
 class DataStorageUpdatedState extends StorageState {
   final int score;
-
-  DataStorageUpdatedState({required this.score});
+  final String quizID;
+  DataStorageUpdatedState({required this.score , required this.quizID});
 
   @override
-  List<Object> get props => [score];
+  List<Object> get props => [score, quizID];
 }
 class DataStorageRetakeState extends StorageState {
   String id;

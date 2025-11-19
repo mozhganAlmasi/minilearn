@@ -16,21 +16,26 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   Future<void> _onLoadQuizzes(
       LoadQuizzesEvent event, Emitter<QuizState> emit) async {
     emit(QuizLoading());
-    try {
-      final quizzes = await getQuizzesUseCase();
-      _allQuizzes = quizzes;
-      emit(QuizLoaded(quizzes));
-    } catch (e) {
-      emit(QuizError('Error On Load Data $e'));
-    }
+
+    final result = await getQuizzesUseCase();
+
+    result.fold(
+          (failure) => emit(QuizError('Error On Load Data: ${failure.message}')),
+          (quizzes) {
+        _allQuizzes = quizzes;
+        emit(QuizInitial());
+        emit(QuizLoaded(quizzes));
+      },
+    );
   }
+
 
   void _onFilterByAge(FilterByAgeEvent event, Emitter<QuizState> emit) {
     final filtered = _allQuizzes.where((q) {
       if (q.ageMin == null || q.ageMax == null) return false;
       return q.ageMin! <= event.age && q.ageMax! >= event.age;
     }).toList();
-
+    emit(QuizInitial());
     emit(QuizLoaded(filtered));
   }
 }

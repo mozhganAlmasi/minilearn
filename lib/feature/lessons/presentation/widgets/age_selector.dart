@@ -15,7 +15,7 @@ class AgeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ages = [3, 4, 5, 6 , 7 ,8];
+    final ages = [3, 4, 5, 6 , 7];
 
     return Wrap(
       alignment: WrapAlignment.center,

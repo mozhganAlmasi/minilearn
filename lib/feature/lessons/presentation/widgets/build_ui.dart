@@ -37,6 +37,13 @@ class _BulidUiState extends State<BulidUi> {
       quizData = data;
     });
   }
+  Future<void> loadDataAndRefresh() async {
+    final data = await AnswerStorage.getAll();
+    setState(() {
+      quizData = data;
+    });
+    context.read<QuizBloc>().add(LoadQuizzesEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,11 +130,17 @@ class _BulidUiState extends State<BulidUi> {
                       ),
                     ],
                   ),
-                  onTap: ()  async {
-                    bool confirmed = await showRetakeConfirmationDialog(context);
-                    if (confirmed) {
-                      retakeAll();}
-                  },
+                    onTap: () async {
+                      try {
+                        bool confirmed = await showRetakeConfirmationDialog(context);
+                        if (confirmed) {
+                          retakeAll();
+                        }
+                      } catch (e) {
+                        debugPrint("Error showing dialog: $e");
+                      }
+                    }
+
                 ),
               ),
             )
@@ -200,11 +213,14 @@ class _BulidUiState extends State<BulidUi> {
     );
   }
 
-  void retakeAll() {
-
-    setState(() async{
+  void retakeAll() async {
+    try {
       await AnswerStorage.removeAll();
       await loadData();
-    });
+      setState(() {});
+    } catch (e) {
+      debugPrint("Error in retakeAll: $e");
+    }
   }
+
 }

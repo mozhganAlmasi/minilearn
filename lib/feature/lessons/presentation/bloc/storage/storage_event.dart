@@ -9,9 +9,10 @@ sealed class StorageEvent extends Equatable{
 }
 class UpdateAnswerStorageEvent extends StorageEvent {
   int score;
-  UpdateAnswerStorageEvent(this.score);
+  String quizID;
+  UpdateAnswerStorageEvent(this.score , this.quizID);
   @override
-  List<Object> get props => [score];
+  List<Object> get props => [score ,quizID];
 }
 class RetakeStorageEvent extends StorageEvent {
   String id;

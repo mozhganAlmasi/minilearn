@@ -17,7 +17,6 @@ class QuizLoading extends QuizState {}
 
 class QuizLoaded extends QuizState {
   final List<QuizEntity> quizzes;
-
   const QuizLoaded(this.quizzes);
 
   @override

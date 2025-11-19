@@ -52,7 +52,7 @@ class QuizNavigation extends StatelessWidget {
 
           onPressed: isLast ? onFinish : (disableNextButton ? null : onNext),
           child:Text(
-              (isLast)?"Finish": "Next", // متن دکمه
+              (isLast)?"Done": "Next", // متن دکمه
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

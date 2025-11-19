@@ -190,7 +190,8 @@ class _QuizPageState extends State<QuizPage> {
         selectedAnswerIndex[currentIndex] = answerIndex;
         isCorrectPerQuestion = checkCurrect;
       });
-      widget.storageBloc.add(UpdateAnswerStorageEvent(currentIndex));
+
+      widget.storageBloc.add(UpdateAnswerStorageEvent(currentIndex ,widget.quizID));
       if (currentIndex + 1 == totalQuestions)
         AnswerStorage.changeDone(widget.quizID);
     } catch (e) {
@@ -255,11 +256,7 @@ class _QuizPageState extends State<QuizPage> {
     });
     Navigator.of(context).pop();
   }
-
-
-
-
-
+  
   void loadAnswerStar() {
     for (var q in widget.questions) {}
   }
