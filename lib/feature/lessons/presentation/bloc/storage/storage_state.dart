@@ -10,17 +10,40 @@ sealed class StorageState extends Equatable {
 
 final class StorageInitial extends StorageState {}
 
-class DataStorageUpdatedState extends StorageState {
+class AddAnswerState extends StorageState {
   final int score;
   final String quizID;
-  DataStorageUpdatedState({required this.score , required this.quizID});
+  AddAnswerState({required this.score, required this.quizID});
 
   @override
   List<Object> get props => [score, quizID];
 }
-class DataStorageRetakeState extends StorageState {
-  String id;
-  DataStorageRetakeState(this.id);
+
+class RemoveAnswerByIDState extends StorageState {
+  final String id;
+  RemoveAnswerByIDState(this.id);
+
+  @override
+  List<Object> get props => [id];
+}
+
+class RemoveAllAnswerState extends StorageState {
+  RemoveAllAnswerState();
+
+  @override
+  List<Object> get props => [];
+}
+
+class GetAllAnswerState extends StorageState {
+  final List<AnswerModel> data;
+  GetAllAnswerState(this.data);
+
+  @override
+  List<Object> get props => [data];
+}
+
+class AnswerErrorState extends StorageState {
+  AnswerErrorState();
 
   @override
   List<Object> get props => [];

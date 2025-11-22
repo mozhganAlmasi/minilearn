@@ -2,8 +2,11 @@ import 'package:educationofchildren/core/utils/app_size.dart';
 import 'package:educationofchildren/feature/lessons/domain/entities/question_entity.dart';
 import 'package:educationofchildren/feature/lessons/presentation/pages/select_quiz.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../config/theme/colors.dart';
-import '../../data/repositories/answer_storage.dart';
+import '../../data/models/answer_model.dart';
+import '../../data/models/answer_result_model.dart';
+import '../../data/repositories/answer_repository_implement.dart';
 import '../bloc/storage/storage_bloc.dart';
 import '../widgets/quiz_navigate.dart';
 
@@ -64,109 +67,109 @@ class _QuizPageState extends State<QuizPage> {
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.all(AppSize.width * 0.05),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(height: AppSize.height * 0.03),
-
-                /// Progress
-                Text(
-                  "Question ${currentIndex + 1} of ${widget.questions.length}",
-                  style: TextStyle(
-                    fontFamily: 'Designer',
-                    fontSize: AppSize.fontMedium,
-                    color: Colors.black,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: AppSize.height * 0.03),
+              
+                  /// Progress
+                  Text(
+                    "Question ${currentIndex + 1} of ${widget.questions.length}",
+                    style: TextStyle(
+                      fontFamily: 'Designer',
+                      fontSize: AppSize.fontMedium,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-
-                SizedBox(height: AppSize.height * 0.05),
-                Container(
-                  color: mPinkLight,
-                  child: Column(
-                    children: [
-                      SizedBox(height: AppSize.height * 0.03),
-
-                      /// Question text
-                      Text(
-                        "${question.question}",
-                        textDirection: TextDirection.ltr,
-                        style: TextStyle(
-                          fontFamily: 'Designer',
-                          fontSize: AppSize.fontSmall,
-                          color: mTextPrimary,
-                        ),
-                      ),
-
-                      SizedBox(height: AppSize.height * 0.04),
-
-                      /// Choices
-                      ...List.generate(question.choices?.length ?? 0, (index) {
-                        final choice = question.choices![index];
-
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: AppSize.height * 0.02,
-                            left: AppSize.height * 0.02,
-                            right: AppSize.height * 0.02,
+              
+                  SizedBox(height: AppSize.height * 0.05),
+                  Container(
+                    color: mPinkLight,
+                    child: Column(
+                      children: [
+                        SizedBox(height: AppSize.height * 0.03),
+              
+                        /// Question text
+                        Text(
+                          "${question.question}",
+                          textDirection: TextDirection.ltr,
+                          style: TextStyle(
+                            fontFamily: 'Designer',
+                            fontSize: AppSize.fontSmall,
+                            color: mTextPrimary,
                           ),
-                          child: GestureDetector(
-                            onTap: () => (disabelAnswerButton)
-                                ? null
-                                : onAnswerTap(question, index),
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                vertical: AppSize.height * 0.02,
-                                horizontal: AppSize.width * 0.04,
-                              ),
-
-                              decoration: BoxDecoration(
-                                color: _getButtonColor(index),
-                                borderRadius: _getRadius(index),
-
-                                border: Border.all(
-                                  color: _getBorderColor(index),
-                                  width: 2,
+                        ),
+              
+                        SizedBox(height: AppSize.height * 0.04),
+              
+                        /// Choices
+                        ...List.generate(question.choices?.length ?? 0, (index) {
+                          final choice = question.choices![index];
+              
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: AppSize.height * 0.02,
+                              left: AppSize.height * 0.02,
+                              right: AppSize.height * 0.02,
+                            ),
+                            child: GestureDetector(
+                              onTap: () => (disabelAnswerButton)
+                                  ? null
+                                  : onAnswerTap(question, index),
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+              
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: AppSize.height * 0.02,
+                                  horizontal: AppSize.width * 0.04,
                                 ),
-                              ),
-
-                              child: Text(
-                                choice,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: AppSize.width * 0.05,
-                                  fontWeight: FontWeight.w500,
+              
+                                decoration: BoxDecoration(
+                                  color: _getButtonColor(index),
+                                  borderRadius: _getRadius(index),
+              
+                                  border: Border.all(
+                                    color: _getBorderColor(index),
+                                    width: 2,
+                                  ),
+                                ),
+              
+                                child: Text(
+                                  choice,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: AppSize.width * 0.05,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      }),
-                    ],
+                          );
+                        }),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 30),
-                QuizNavigation(
-                  isLast: (currentIndex + 1 == totalQuestions),
-                  currentIndex: currentIndex,
-                  disableNextButton: disableNextButton,
-                  onNext: () => onNextQuestion(),
-                  // onPrev: () => onPreviousQuestion(),
-                  onFinish: () => onFinishQuiz(),
-                ),
-                SizedBox(height: 30),
-                Expanded(
-                  child: Wrap(
+                  SizedBox(height: 30),
+                  QuizNavigation(
+                    isLast: (currentIndex + 1 == totalQuestions),
+                    currentIndex: currentIndex,
+                    disableNextButton: disableNextButton,
+                    onNext: () => onNextQuestion(),
+                    // onPrev: () => onPreviousQuestion(),
+                    onFinish: () => onFinishQuiz(),
+                  ),
+                  SizedBox(height: 30),
+                  Wrap(
                     children: List.generate(
                       starCount,
                       (i) => Image(image: AssetImage("assets/img/star.png")),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -176,28 +179,37 @@ class _QuizPageState extends State<QuizPage> {
 
   void onAnswerTap(QuestionEntity q, int answerIndex) async {
     try {
-      bool checkCurrect = (q.answerIndex == answerIndex);
-      if (checkCurrect) starCount++;
-      await AnswerStorage.addResult(
-        id: widget.quizID,
-        isdone: isDone.toString(),
-        quizeindex: currentIndex.toString(),
-        iscurrect: checkCurrect.toString(),
+      bool checkCorrect = (q.answerIndex == answerIndex);
+      if (checkCorrect) starCount++;
+
+      // ساخت AnswerModel برای ذخیره
+      final answerModel = AnswerModel(
+        quizID: widget.quizID,
+        isDone: isDone,
+        userAnswer: [
+          AnswerResultModel(
+            index: currentIndex,
+            result: checkCorrect,
+            userAnswerIndex: answerIndex,
+          )
+        ],
       );
+
+      // ارسال به Bloc
+      context.read<StorageBloc>().add(AddAnswerStorageEvent(answerModel));
+
       setState(() {
         disabelAnswerButton = true;
         disableNextButton = false;
         selectedAnswerIndex[currentIndex] = answerIndex;
-        isCorrectPerQuestion = checkCurrect;
+        isCorrectPerQuestion = checkCorrect;
       });
 
-      widget.storageBloc.add(UpdateAnswerStorageEvent(currentIndex ,widget.quizID));
-      if (currentIndex + 1 == totalQuestions)
-        AnswerStorage.changeDone(widget.quizID);
     } catch (e) {
-      print("onAnswerTap: $e");
+      print("onAnswerTap error: $e");
     }
   }
+
 
   Color _getButtonColor(int optionIndex) {
     if (selectedAnswerIndex[currentIndex] != optionIndex) {
@@ -251,12 +263,11 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void onFinishQuiz() {
-    setState(() {
-      AnswerStorage.changeDone(widget.quizID);
-    });
+    // به جای AnswerStorage.changeDone
+    context.read<StorageBloc>().add(MarkAnswerDoneEvent(widget.quizID));
     Navigator.of(context).pop();
   }
-  
+
   void loadAnswerStar() {
     for (var q in widget.questions) {}
   }

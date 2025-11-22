@@ -4,7 +4,7 @@ import 'package:educationofchildren/feature/lessons/presentation/widgets/retake_
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/app_size.dart';
-import '../../data/repositories/answer_storage.dart';
+import '../../data/repositories/answer_repository_implement.dart';
 import '../pages/quiz_page.dart';
 
 class QuizItemCard extends StatelessWidget {
@@ -67,7 +67,9 @@ class QuizItemCard extends StatelessWidget {
           );
 
           if (newIndex != null) {}
-        } catch (e) {}
+        } catch (e) {
+          print(e.toString());
+        }
         if (isDone) return;
       },
       child: Container(
@@ -169,13 +171,14 @@ class QuizItemCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () async {
                     try {
-                      bool confirmed = await showRetakeConfirmationDialog(
-                        context,
-                      );
+                      bool confirmed = await showRetakeConfirmationDialog(context);
                       if (confirmed) {
-                        storageBloc.add(RetakeStorageEvent(quizID));
+                        // استفاده از Event جدید
+                        storageBloc.add(RetakeAnswerByIDEvent(quizID));
                       }
-                    } catch (e) {}
+                    } catch (e) {
+                      debugPrint("Error in retake tap: $e");
+                    }
                   },
                   child: Image(
                     image: AssetImage("assets/emoji/retake.png"),
@@ -184,6 +187,7 @@ class QuizItemCard extends StatelessWidget {
                   ),
                 ),
               ),
+
           ],
         ),
       ),

@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../config/theme/colors.dart';
 import '../../../../core/utils/app_size.dart';
 import '../../data/models/quiz_extracted_info.dart';
-import '../../data/repositories/answer_storage.dart';
+import '../../data/repositories/answer_repository_implement.dart';
 import '../bloc/quiz/quiz_bloc.dart';
 import '../bloc/quiz/quiz_event.dart';
 import '../bloc/quiz/quiz_state.dart';
@@ -26,24 +26,14 @@ class _BulidUiState extends State<BulidUi> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadData();
   }
 
   Future<void> loadData() async {
-    final data = await AnswerStorage.getAll();
-    setState(() {
-      quizData = data;
-    });
+    context.read<StorageBloc>().add(GetAllAnswerStorageEvent());
   }
-  Future<void> loadDataAndRefresh() async {
-    final data = await AnswerStorage.getAll();
-    setState(() {
-      quizData = data;
-    });
-    context.read<QuizBloc>().add(LoadQuizzesEvent());
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,86 +57,90 @@ class _BulidUiState extends State<BulidUi> {
       ),
       body: BlocListener<StorageBloc, StorageState>(
         listener: (context, state) async {
-          if (state is DataStorageUpdatedState) {
-            await loadData();
+          if (state is GetAllAnswerState) {
             setState(() {
-              context.read<QuizBloc>().add(LoadQuizzesEvent());
+              quizData = state.data;
             });
-          }else if(state is DataStorageRetakeState){
-            await AnswerStorage.remove(state.id);
+            context.read<QuizBloc>().add(LoadQuizzesEvent());
+          } else if (state is RemoveAllAnswerState) {
+            await loadData(); // دیتا دوباره لود شود
+            setState(() {});
+          } else if (state is RemoveAnswerByIDState) {
             await loadData();
-            setState(() {
-
-            });
+            setState(() {});
+          } else if (state is AnswerErrorState) {
+            debugPrint("StorageBloc error");
           }
         },
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            // ✔ ویجت جدا
-            AgeSelector(
-              selectedAge: _selectedAge,
-              onSelected: (age) {
-                setState(() => _selectedAge = age);
-                context.read<QuizBloc>().add(FilterByAgeEvent(age));
-              },
-            ),
 
-            const SizedBox(height: 10),
-
-            Expanded(
-
-              child: BlocBuilder<QuizBloc, QuizState>(
-                builder: (context, state) {
-                  if (state is QuizLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is QuizLoaded) {
-                    return _buildList(state, quizData);
-                  } else if (state is QuizError) {
-                    return Center(child: Text(state.message));
-                  }
-                  return const SizedBox.shrink();
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              // ✔ ویجت جدا
+              AgeSelector(
+                selectedAge: _selectedAge,
+                onSelected: (age) {
+                  setState(() => _selectedAge = age);
+                  context.read<QuizBloc>().add(FilterByAgeEvent(age));
                 },
               ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: GestureDetector(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Retake All",
-                          style: TextStyle(
-                            fontSize: AppSize.fontMedium,
-                            fontWeight: FontWeight.bold,
-                          )),
-                      const SizedBox(width: 8),
-                      Image.asset(
-                        'assets/emoji/retake.png',
-                        width: AppSize.retakesizelarg,
-                        height: AppSize.retakesizelarg,
-                      ),
-                    ],
-                  ),
-                    onTap: () async {
-                      try {
-                        bool confirmed = await showRetakeConfirmationDialog(context);
-                        if (confirmed) {
-                          retakeAll();
-                        }
-                      } catch (e) {
-                        debugPrint("Error showing dialog: $e");
-                      }
-                    }
 
+              const SizedBox(height: 10),
+
+              Expanded(
+
+                child: BlocBuilder<QuizBloc, QuizState>(
+                  builder: (context, state) {
+                    if (state is QuizLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is QuizLoaded) {
+                      return _buildList(state, quizData);
+                    } else if (state is QuizError) {
+                      return Center(child: Text(state.message));
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
               ),
-            )
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: GestureDetector(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Retake All",
+                            style: TextStyle(
+                              fontSize: AppSize.fontMedium,
+                              fontWeight: FontWeight.bold,
+                            )),
+                        const SizedBox(width: 8),
+                        Image.asset(
+                          'assets/emoji/retake.png',
+                          width: AppSize.retakesizelarg,
+                          height: AppSize.retakesizelarg,
+                        ),
+                      ],
+                    ),
+                      onTap: () async {
+                        try {
+                          bool confirmed = await showRetakeConfirmationDialog(context);
+                          if (confirmed) {
+                            retakeAll();
+                          }
+                        } catch (e) {
+                          debugPrint("Error showing dialog: $e");
+                        }
+                      }
 
-          ],
-        ),
+                  ),
+                ),
+              )
+
+            ],
+          ),
+
       ),
     );
   }
@@ -185,7 +179,7 @@ class _BulidUiState extends State<BulidUi> {
 
   QuizExtractedInfo _extractQuizInfo(String quizId, List<dynamic> lstAnswer) {
     final idx = lstAnswer.indexWhere(
-      (item) => item != null && item["id"]?.toString() == quizId,
+          (item) => item != null && item["id"]?.toString() == quizId,
     );
 
     if (idx == -1) {
@@ -205,6 +199,7 @@ class _BulidUiState extends State<BulidUi> {
     List<bool> answers = results
         .map<bool>((ans) => ans['iscurrect'] == "true")
         .toList();
+
     return QuizExtractedInfo(
       isDone: isDone,
       answerCount: results.length,
@@ -215,9 +210,7 @@ class _BulidUiState extends State<BulidUi> {
 
   void retakeAll() async {
     try {
-      await AnswerStorage.removeAll();
-      await loadData();
-      setState(() {});
+      context.read<StorageBloc>().add(RetakeAllAnswerStorageEvent());
     } catch (e) {
       debugPrint("Error in retakeAll: $e");
     }

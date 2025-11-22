@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/app_size.dart';
 import '../../data/datasources/local/quiz_local_data_source.dart';
+import '../../data/repositories/answer_repository_implement.dart';
 import '../../data/repositories/quiz_repository_impl.dart';
+import '../../domain/usecases/add_answer_usecase.dart';
+import '../../domain/usecases/get_answers_usecase.dart';
 import '../../domain/usecases/get_quizzes_usecase.dart';
 import '../bloc/quiz/quiz_bloc.dart';
 import '../bloc/quiz/quiz_event.dart';
@@ -34,8 +37,13 @@ class _SelectQuizState extends State<SelectQuiz> {
           },
         ),
         BlocProvider<StorageBloc>(
-          create: (_) => StorageBloc(), // بلاک جدید
-        ),
+          create: (_) => StorageBloc(
+            getAnswerUseCase: GetAnswerUseCase(AnswerRepositoryImplement()),
+            addAnswerUsecase: AddAnswerUsecase(AnswerRepositoryImplement()),
+            repository: AnswerRepositoryImplement(),
+          ),
+        )
+
       ],
       child: const BulidUi(),
     );

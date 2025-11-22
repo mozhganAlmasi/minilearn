@@ -17,7 +17,6 @@ class QuizRepositoryImpl implements QuizRepository {
   Future<Either<Failure, List<QuizEntity<QuestionEntity>>>> getQuizzes() async {
     try {
       final List<QuizModel> quizModels = await localDataSource.loadQuizzes();
-
       // تبدیل هر مدل به انتیتی
       final quizzes = quizModels.map((qm) => QuizEntity<QuestionEntity>(
         id: qm.id,
