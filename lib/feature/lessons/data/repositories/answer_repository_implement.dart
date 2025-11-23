@@ -15,7 +15,7 @@ class AnswerRepositoryImplement {
       final jsonString = prefs.getString(key);
 
       if (jsonString == null) {
-        return Left(CacheFailure('No data found'));
+        return Right([]);
       }
 
       final List<dynamic> jsonList = jsonDecode(jsonString);

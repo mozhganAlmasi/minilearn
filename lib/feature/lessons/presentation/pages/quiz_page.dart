@@ -1,33 +1,28 @@
 import 'package:educationofchildren/core/utils/app_size.dart';
 import 'package:educationofchildren/feature/lessons/domain/entities/question_entity.dart';
-import 'package:educationofchildren/feature/lessons/presentation/pages/select_quiz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../config/theme/colors.dart';
 import '../../data/models/answer_model.dart';
 import '../../data/models/answer_result_model.dart';
-import '../../data/repositories/answer_repository_implement.dart';
 import '../bloc/storage/storage_bloc.dart';
 import '../widgets/quiz_navigate.dart';
 
 class QuizPage extends StatefulWidget {
   final String quizID;
-  final String lessonTitle;
   final List<QuestionEntity> questions;
   final int currentIndex;
   final StorageBloc storageBloc;
-  final int score;
-  final List<bool> answers;
+  final int star;
 
   const QuizPage({
     super.key,
     required this.quizID,
-    required this.lessonTitle,
     required this.questions,
     required this.currentIndex,
     required this.storageBloc,
-    required this.score,
-    required this.answers,
+    required this.star
+
   });
 
   @override
@@ -35,17 +30,17 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
-  int selectedIndex = -1;
+
   late int currentIndex = widget.currentIndex;
-  late int starCount = widget.score;
   late int totalQuestions = widget.questions.length;
+  late int star = widget.star;
   late List<int> selectedAnswerIndex;
-  late List<bool> answers = widget.answers;
   late bool isCorrectPerQuestion;
   bool isDone = false;
   bool disabelAnswerButton = false;
   bool disableNextButton = true;
   late QuestionEntity question;
+
 
   @override
   void initState() {
@@ -154,7 +149,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                   SizedBox(height: 30),
                   QuizNavigation(
-                    isLast: (currentIndex + 1 == totalQuestions),
+                    isLast: (currentIndex +1 == totalQuestions),
                     currentIndex: currentIndex,
                     disableNextButton: disableNextButton,
                     onNext: () => onNextQuestion(),
@@ -164,7 +159,7 @@ class _QuizPageState extends State<QuizPage> {
                   SizedBox(height: 30),
                   Wrap(
                     children: List.generate(
-                      starCount,
+                      star,
                       (i) => Image(image: AssetImage("assets/img/star.png")),
                     ),
                   ),
@@ -180,7 +175,7 @@ class _QuizPageState extends State<QuizPage> {
   void onAnswerTap(QuestionEntity q, int answerIndex) async {
     try {
       bool checkCorrect = (q.answerIndex == answerIndex);
-      if (checkCorrect) starCount++;
+      if (checkCorrect) star++;
 
       // ساخت AnswerModel برای ذخیره
       final answerModel = AnswerModel(
@@ -196,7 +191,7 @@ class _QuizPageState extends State<QuizPage> {
       );
 
       // ارسال به Bloc
-      context.read<StorageBloc>().add(AddAnswerStorageEvent(answerModel));
+      widget.storageBloc.add(AddAnswerStorageEvent(answerModel));
 
       setState(() {
         disabelAnswerButton = true;

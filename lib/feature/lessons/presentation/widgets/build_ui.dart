@@ -1,13 +1,13 @@
+import 'package:educationofchildren/feature/lessons/data/models/answer_model.dart';
+import 'package:educationofchildren/feature/lessons/data/models/quiz_model.dart';
 import 'package:educationofchildren/feature/lessons/presentation/bloc/storage/storage_bloc.dart';
 import 'package:educationofchildren/feature/lessons/presentation/widgets/quiz_item_card.dart';
 import 'package:educationofchildren/feature/lessons/presentation/widgets/retake_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../config/theme/colors.dart';
 import '../../../../core/utils/app_size.dart';
 import '../../data/models/quiz_extracted_info.dart';
-import '../../data/repositories/answer_repository_implement.dart';
 import '../bloc/quiz/quiz_bloc.dart';
 import '../bloc/quiz/quiz_event.dart';
 import '../bloc/quiz/quiz_state.dart';
@@ -22,7 +22,7 @@ class BulidUi extends StatefulWidget {
 
 class _BulidUiState extends State<BulidUi> {
   int? _selectedAge;
-  List<dynamic> quizData = [];
+  List<AnswerModel> answerData = [];
 
   @override
   void initState() {
@@ -58,17 +58,16 @@ class _BulidUiState extends State<BulidUi> {
       body: BlocListener<StorageBloc, StorageState>(
         listener: (context, state) async {
           if (state is GetAllAnswerState) {
-            setState(() {
-              quizData = state.data;
-            });
+            answerData = state.data;
             context.read<QuizBloc>().add(LoadQuizzesEvent());
           } else if (state is RemoveAllAnswerState) {
             await loadData(); // دیتا دوباره لود شود
-            setState(() {});
           } else if (state is RemoveAnswerByIDState) {
             await loadData();
-            setState(() {});
-          } else if (state is AnswerErrorState) {
+          }else if(state is AddAnswerState){
+            await loadData();
+          }
+            else if (state is AnswerErrorState) {
             debugPrint("StorageBloc error");
           }
         },
@@ -94,7 +93,7 @@ class _BulidUiState extends State<BulidUi> {
                     if (state is QuizLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is QuizLoaded) {
-                      return _buildList(state, quizData);
+                      return _buildList(state, answerData);
                     } else if (state is QuizError) {
                       return Center(child: Text(state.message));
                     }
@@ -145,7 +144,7 @@ class _BulidUiState extends State<BulidUi> {
     );
   }
 
-  Widget _buildList(QuizLoaded state, List<dynamic> lstAnswer) {
+  Widget _buildList(QuizLoaded state, List<AnswerModel> lstAnswer) {
     if (state.quizzes.isEmpty) {
       return const Center(
         child: Text(
@@ -163,50 +162,19 @@ class _BulidUiState extends State<BulidUi> {
       itemCount: state.quizzes.length,
       itemBuilder: (context, index) {
         final quiz = state.quizzes[index];
-        final quizInfo = _extractQuizInfo(quiz.id ?? '', lstAnswer);
-
+        final currentAnswerReleas = getAnswerForQuiz(quiz.id , lstAnswer , state.quizzes.length);
         return QuizItemCard(
           quizID: quiz.id ?? '',
           quiz: quiz,
-          isDone: quizInfo.isDone,
-          currentIndex: quizInfo.answerCount,
-          score: quizInfo.score,
-          answers: quizInfo.answers,
+          isDone:currentAnswerReleas.isDone,
+          currentIndex: currentAnswerReleas.currentIndex,
+          score: currentAnswerReleas.score,
         );
       },
     );
   }
 
-  QuizExtractedInfo _extractQuizInfo(String quizId, List<dynamic> lstAnswer) {
-    final idx = lstAnswer.indexWhere(
-          (item) => item != null && item["id"]?.toString() == quizId,
-    );
 
-    if (idx == -1) {
-      return QuizExtractedInfo(
-        isDone: false,
-        answerCount: 0,
-        score: 0,
-        answers: [],
-      );
-    }
-
-    final data = lstAnswer[idx];
-    final isDone = (data["done"] == 'true');
-    final results = data["result"] as List<dynamic>? ?? [];
-
-    int score = results.where((ans) => ans['iscurrect'] == "true").length;
-    List<bool> answers = results
-        .map<bool>((ans) => ans['iscurrect'] == "true")
-        .toList();
-
-    return QuizExtractedInfo(
-      isDone: isDone,
-      answerCount: results.length,
-      score: score,
-      answers: answers,
-    );
-  }
 
   void retakeAll() async {
     try {
@@ -214,6 +182,24 @@ class _BulidUiState extends State<BulidUi> {
     } catch (e) {
       debugPrint("Error in retakeAll: $e");
     }
+  }
+
+  QuizExtractedInfo getAnswerForQuiz( quizID ,List<AnswerModel> answers , int itemCount){
+    bool isDone =false;
+    int currentIndex =0;
+    int score =0;
+    for (var answer in answers) {
+      if(answer.quizID == quizID){
+        isDone = answer.isDone;
+        currentIndex = answer.userAnswer.length;
+        if(itemCount == currentIndex) isDone = true;
+        for (var result in answer.userAnswer) {
+            if(result.result == true) score++;
+        }
+      }
+    }
+    return QuizExtractedInfo(isDone:isDone , score:score , currentIndex:currentIndex);
+
   }
 
 }

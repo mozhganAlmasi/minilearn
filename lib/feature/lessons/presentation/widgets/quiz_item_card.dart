@@ -4,17 +4,14 @@ import 'package:educationofchildren/feature/lessons/presentation/widgets/retake_
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/app_size.dart';
-import '../../data/repositories/answer_repository_implement.dart';
 import '../pages/quiz_page.dart';
 
 class QuizItemCard extends StatelessWidget {
   final QuizEntity quiz;
   final String quizID;
   final bool isDone;
-
   final int currentIndex;
   final int score;
-  final List<bool> answers;
 
   const QuizItemCard({
     super.key,
@@ -23,7 +20,7 @@ class QuizItemCard extends StatelessWidget {
     required this.isDone,
     required this.currentIndex,
     required this.score,
-    required this.answers,
+
   });
 
   @override
@@ -32,17 +29,17 @@ class QuizItemCard extends StatelessWidget {
     return GestureDetector(
       onTap: () async {
         try {
+          if (isDone) return;
           final newIndex = await Navigator.push(
             context,
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) => QuizPage(
                 quizID: quizID,
-                lessonTitle: quiz.title ?? '',
                 questions: quiz.questions!,
                 currentIndex: currentIndex,
-                score: score,
-                answers: answers,
                 storageBloc: storageBloc,
+                star: score,
+
               ),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
@@ -70,7 +67,7 @@ class QuizItemCard extends StatelessWidget {
         } catch (e) {
           print(e.toString());
         }
-        if (isDone) return;
+
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10),

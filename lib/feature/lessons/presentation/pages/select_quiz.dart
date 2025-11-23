@@ -32,7 +32,7 @@ class _SelectQuizState extends State<SelectQuiz> {
             final repo = QuizRepositoryImpl(dataSource);
             final useCase = GetQuizzesUseCase(repo);
             final bloc = QuizBloc(useCase);
-            bloc.add(LoadQuizzesEvent());
+
             return bloc;
           },
         ),
@@ -41,7 +41,7 @@ class _SelectQuizState extends State<SelectQuiz> {
             getAnswerUseCase: GetAnswerUseCase(AnswerRepositoryImplement()),
             addAnswerUsecase: AddAnswerUsecase(AnswerRepositoryImplement()),
             repository: AnswerRepositoryImplement(),
-          ),
+          )..add(GetAllAnswerStorageEvent()),
         )
 
       ],
