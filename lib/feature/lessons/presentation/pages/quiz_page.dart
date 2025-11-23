@@ -49,7 +49,6 @@ class _QuizPageState extends State<QuizPage> {
 
     isCorrectPerQuestion = false;
     selectedAnswerIndex = List.generate(totalQuestions, (_) => -1);
-    loadAnswerStar();
   }
 
   @override
@@ -241,6 +240,7 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void onNextQuestion() {
+    print("currentIndex:"+currentIndex.toString());
     setState(() {
       if (currentIndex + 1 < totalQuestions) {
         currentIndex++;
@@ -258,12 +258,10 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void onFinishQuiz() {
-    // به جای AnswerStorage.changeDone
-    context.read<StorageBloc>().add(MarkAnswerDoneEvent(widget.quizID));
+
+    widget.storageBloc.add(MarkAnswerDoneEvent(widget.quizID));
     Navigator.of(context).pop();
   }
 
-  void loadAnswerStar() {
-    for (var q in widget.questions) {}
-  }
+
 }
