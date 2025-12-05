@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:educationofchildren/core/utils/app_size.dart';
 import 'package:educationofchildren/feature/lessons/domain/entities/question_entity.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +23,7 @@ class QuizPage extends StatefulWidget {
     required this.questions,
     required this.currentIndex,
     required this.storageBloc,
-    required this.star
-
+    required this.star,
   });
 
   @override
@@ -30,7 +31,6 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
-
   late int currentIndex = widget.currentIndex;
   late int totalQuestions = widget.questions.length;
   late int star = widget.star;
@@ -40,20 +40,29 @@ class _QuizPageState extends State<QuizPage> {
   bool disabelAnswerButton = false;
   bool disableNextButton = true;
   late QuestionEntity question;
-
+  int counterTime = 10;
+  int startTime = 10;
+  late Timer timerQuiz;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    startTimer();
     isCorrectPerQuestion = false;
     selectedAnswerIndex = List.generate(totalQuestions, (_) => -1);
   }
 
   @override
+  void dispose() {
+    timerQuiz.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     question = widget.questions[currentIndex];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -66,7 +75,9 @@ class _QuizPageState extends State<QuizPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: AppSize.height * 0.03),
-              
+                  Text("Timer : ${counterTime}"),
+                  SizedBox(height: AppSize.height * 0.03),
+
                   /// Progress
                   Text(
                     "Question ${currentIndex + 1} of ${widget.questions.length}",
@@ -76,14 +87,14 @@ class _QuizPageState extends State<QuizPage> {
                       color: Colors.black,
                     ),
                   ),
-              
+
                   SizedBox(height: AppSize.height * 0.05),
                   Container(
                     color: mPinkLight,
                     child: Column(
                       children: [
                         SizedBox(height: AppSize.height * 0.03),
-              
+
                         /// Question text
                         Text(
                           "${question.question}",
@@ -94,13 +105,15 @@ class _QuizPageState extends State<QuizPage> {
                             color: mTextPrimary,
                           ),
                         ),
-              
+
                         SizedBox(height: AppSize.height * 0.04),
-              
+
                         /// Choices
-                        ...List.generate(question.choices?.length ?? 0, (index) {
+                        ...List.generate(question.choices?.length ?? 0, (
+                          index,
+                        ) {
                           final choice = question.choices![index];
-              
+
                           return Padding(
                             padding: EdgeInsets.only(
                               bottom: AppSize.height * 0.02,
@@ -110,27 +123,27 @@ class _QuizPageState extends State<QuizPage> {
                             child: GestureDetector(
                               onTap: () => (disabelAnswerButton)
                                   ? null
-                                  : onAnswerTap(question, index),
+                                  : onAnswerTap(question, index, false),
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 300),
                                 curve: Curves.easeOut,
-              
+
                                 width: double.infinity,
                                 padding: EdgeInsets.symmetric(
                                   vertical: AppSize.height * 0.02,
                                   horizontal: AppSize.width * 0.04,
                                 ),
-              
+
                                 decoration: BoxDecoration(
                                   color: _getButtonColor(index),
                                   borderRadius: _getRadius(index),
-              
+
                                   border: Border.all(
                                     color: _getBorderColor(index),
                                     width: 2,
                                   ),
                                 ),
-              
+
                                 child: Text(
                                   choice,
                                   textAlign: TextAlign.center,
@@ -148,7 +161,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                   SizedBox(height: 30),
                   QuizNavigation(
-                    isLast: (currentIndex +1 == totalQuestions),
+                    isLast: (currentIndex + 1 == totalQuestions),
                     currentIndex: currentIndex,
                     disableNextButton: disableNextButton,
                     onNext: () => onNextQuestion(),
@@ -171,7 +184,11 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
-  void onAnswerTap(QuestionEntity q, int answerIndex) async {
+  void onAnswerTap(
+    QuestionEntity q,
+    int answerIndex,
+    bool callFromTimer,
+  ) async {
     try {
       bool checkCorrect = (q.answerIndex == answerIndex);
       if (checkCorrect) star++;
@@ -183,9 +200,9 @@ class _QuizPageState extends State<QuizPage> {
         userAnswer: [
           AnswerResultModel(
             index: currentIndex,
-            result: checkCorrect,
+            result: (callFromTimer) ? false : checkCorrect,
             userAnswerIndex: answerIndex,
-          )
+          ),
         ],
       );
 
@@ -198,12 +215,10 @@ class _QuizPageState extends State<QuizPage> {
         selectedAnswerIndex[currentIndex] = answerIndex;
         isCorrectPerQuestion = checkCorrect;
       });
-
     } catch (e) {
       print("onAnswerTap error: $e");
     }
   }
-
 
   Color _getButtonColor(int optionIndex) {
     if (selectedAnswerIndex[currentIndex] != optionIndex) {
@@ -240,10 +255,14 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void onNextQuestion() {
-    print("currentIndex:"+currentIndex.toString());
+    print("currentIndex:" + currentIndex.toString());
     setState(() {
       if (currentIndex + 1 < totalQuestions) {
+        counterTime=startTime;
         currentIndex++;
+      } else {
+        onFinishQuiz();
+        timerQuiz.cancel();
       }
       disableNextButton = true;
       disabelAnswerButton = false;
@@ -253,15 +272,35 @@ class _QuizPageState extends State<QuizPage> {
   void onPreviousQuestion() {
     setState(() {
       if (currentIndex > 0) currentIndex--;
-      if(selectedAnswerIndex[currentIndex] != -1) disabelAnswerButton = false;
+      if (selectedAnswerIndex[currentIndex] != -1) disabelAnswerButton = false;
     });
   }
 
   void onFinishQuiz() {
-
     widget.storageBloc.add(MarkAnswerDoneEvent(widget.quizID));
     Navigator.of(context).pop();
   }
 
-
+  void startTimer() {
+    timerQuiz = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (counterTime == 0 && disabelAnswerButton == false) {
+        //تایمر تمام شده و کاربر هم هیچ پاسخی نداده
+        counterTime = startTime;
+        setState(() {
+          onAnswerTap(widget.questions[currentIndex], -1, true);
+          onNextQuestion();
+        });
+      } else if (counterTime == 0 && disabelAnswerButton == true) {
+        //تایمر تمام شده و کاربر پاسخ داده ولی دکمه next را نزده
+        counterTime = startTime;
+        onNextQuestion();
+      } else if (counterTime > 0 ) {
+        //تایمر تمام نشده
+        //مهم نیست که کاربر پاسخ داده یا نه چون هنوز وقت دارد
+        setState(() {
+          counterTime--;
+        });
+      }
+    });
+  }
 }

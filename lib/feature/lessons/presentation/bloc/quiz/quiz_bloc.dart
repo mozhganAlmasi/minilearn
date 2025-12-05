@@ -17,7 +17,7 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
       LoadQuizzesEvent event, Emitter<QuizState> emit) async {
     emit(QuizLoading());
 
-    final result = await getQuizzesUseCase();
+    final result = await getQuizzesUseCase(null);
 
     result.fold(
           (failure) => emit(QuizError('Error On Load Data: ${failure.message}')),

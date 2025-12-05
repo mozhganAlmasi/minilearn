@@ -22,7 +22,7 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
     // دریافت همه پاسخ‌ها
     on<GetAllAnswerStorageEvent>((event, emit) async {
       emit(StorageInitial());
-      final result = await getAnswerUseCase();
+      final result = await getAnswerUseCase(null);
       result.fold(
             (failure) => emit(AnswerErrorState()),
             (answers) => emit(GetAllAnswerState(answers)),
@@ -32,7 +32,7 @@ class StorageBloc extends Bloc<StorageEvent, StorageState> {
     on<AddAnswerStorageEvent>((event, emit) async {
       emit(StorageInitial());
 
-      final result = await addAnswerUsecase.call(params: event.answer);
+      final result = await addAnswerUsecase.call( event.answer);
 
       result.fold(
             (failure) => emit(AnswerErrorState()),
